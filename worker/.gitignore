@@ -1,0 +1,16 @@
+# Wrangler local state
+.wrangler/
+
+# Local dev secrets — NEVER commit
+.dev.vars
+.env
+.env.local
+
+# npm
+node_modules/
+package-lock.json
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db

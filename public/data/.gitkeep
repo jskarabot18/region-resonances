@@ -1,0 +1,3 @@
+This directory is where region_embeddings.json will be written by
+scripts/build_metaphor_embeddings.py. It is empty until you run that
+script. Safe to delete this file once region_embeddings.json exists.

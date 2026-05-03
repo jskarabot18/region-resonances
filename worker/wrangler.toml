@@ -1,0 +1,37 @@
+# wrangler.toml — Region Resonances embedding proxy
+#
+# Requires Wrangler 4.36.0 or later (for the rate-limit binding).
+#
+# Setup:
+#   1. npm install -g wrangler   (or use npx wrangler ...)
+#   2. wrangler login
+#   3. wrangler secret put OPENAI_API_KEY
+#      (paste your sk-... key when prompted; it's stored encrypted)
+#   4. wrangler deploy
+#
+# Local dev:
+#   wrangler dev
+#   # Note: rate-limit binding works in `wrangler dev` but counters are
+#   # local-only — they don't share state with production.
+
+name = "region-resonances-proxy"
+main = "src/index.js"
+compatibility_date = "2025-09-23"
+
+# Rate limiting: 10 requests per 60 seconds per client IP.
+#
+# Reasoning: with debounced auto-match (400ms), a user actively typing
+# generates at most ~3-5 lookups per minute. 10/min gives comfortable
+# headroom while making scraping unattractive — at this rate, scraping
+# all 59 regions worth of test queries would take ~6 minutes per IP.
+#
+# `namespace_id` is just a number you choose. Different bindings sharing
+# the same namespace_id share counters; we use a unique value here.
+[[ratelimits]]
+binding = "RATE_LIMITER"
+namespace_id = "1001"
+simple = { limit = 10, period = 60 }
+
+# Note: OPENAI_API_KEY is NOT defined here on purpose. Set it as a
+# secret with `wrangler secret put OPENAI_API_KEY` so it's encrypted
+# at rest and never appears in source control.
