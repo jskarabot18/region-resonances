@@ -1,25 +1,66 @@
-/**
- * Footer
- *
- * Brief, editorial. Includes the project attribution and a
- * small note on how the matching works (so curious users have
- * a thread to pull on without it dominating the layout).
- */
+// ---------------------------------------------------------------------------
+// Footer — Vinotheca-family lower-left.
+//
+// Mirrors region-affinities Footer.jsx in structure. Uses a typographic
+// ornament (❧, U+2767 "Rotated Floral Heart Bullet") instead of an emoji
+// so the motto renders in serif italic and inherits the wine-red colour
+// of its surrounding text. Reads like a printed colophon rather than a
+// modern web flourish.
+//
+//   centred wine-red italic motto with leaf-shaped ornaments
+//   row of links (GitHub · License · CC BY-NC 4.0 · Vinotheca · Correspondence)
+//   bottom: © Jure Skarabot · MMXXVI
+// ---------------------------------------------------------------------------
+
 export default function Footer() {
   return (
-    <footer className="mt-20 border-t border-parchment-edge bg-parchment">
-      <div className="max-w-6xl mx-auto px-6 py-8 text-sm text-ink-muted">
-        <div className="flex flex-col sm:flex-row sm:justify-between gap-4">
-          <p>
-            <span className="small-caps">Region Resonances</span>
-            <span className="mx-2 text-ink-subtle">·</span>
-            A Vinotheca companion tool by Jure Skarabot
-          </p>
-          <p className="text-ink-subtle font-sans text-xs tracking-wide">
-            Matching uses semantic embeddings of the 59 region narratives.
-            Nothing you type is stored.
+    <footer className="border-t border-parchment-edge bg-parchment-warm mt-12">
+      <div className="max-w-6xl mx-auto px-6 py-8">
+        <div className="text-center mb-4">
+          <p className="font-serif italic text-wine text-base inline-flex items-center gap-3">
+            <span aria-hidden="true">❧</span>
+            <span>in vino, cognitio</span>
+            <span aria-hidden="true">❧</span>
           </p>
         </div>
+
+        <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 text-xs font-sans text-ink-muted">
+          
+            href="https://github.com/jskarabot18/region-resonances"
+            className="hover:text-wine transition-colors"
+            target="_blank" rel="noreferrer"
+          >
+            GitHub
+          </a>
+          <span className="text-ink-subtle">·</span>
+          <span>License</span>
+          <span className="text-ink-subtle">·</span>
+          
+            href="https://creativecommons.org/licenses/by-nc/4.0/"
+            className="hover:text-wine transition-colors"
+            target="_blank" rel="noreferrer"
+          >
+            CC BY-NC 4.0
+          </a>
+          <span className="text-ink-subtle">·</span>
+          
+            href="https://jskarabot18.github.io/vinotheca/"
+            className="hover:text-wine transition-colors"
+          >
+            Vinotheca
+          </a>
+          <span className="text-ink-subtle">·</span>
+          
+            href="mailto:hello@codexvini.com"
+            className="hover:text-wine transition-colors"
+          >
+            Correspondence
+          </a>
+        </div>
+
+        <p className="text-center text-xs font-sans text-ink-subtle mt-3">
+          © Jure Skarabot · MMXXVI
+        </p>
       </div>
     </footer>
   );
