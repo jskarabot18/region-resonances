@@ -4,6 +4,7 @@
  * Left column. The user's primary interaction surface:
  *   - A large freeform text input (the "resonance-input" pattern)
  *   - Example chips below to seed inspiration
+ *   - A Reset link, visible only when the user has typed something
  *   - A subtle status area for loading / error messages
  *
  * The component is presentational — it holds the input value as
@@ -26,6 +27,8 @@ export default function InputPanel({
   status,        // 'idle' | 'loading' | 'error' | 'ready'
   errorMessage,
 }) {
+  const hasQuery = query.trim().length > 0;
+
   return (
     <aside className="lg:sticky lg:top-8 lg:self-start space-y-6">
       <div>
@@ -60,6 +63,23 @@ export default function InputPanel({
           ))}
         </div>
       </div>
+
+      {/*
+        Reset link — text-style, editorial. Visible only when there's
+        something to reset, so it never adds visual weight to the empty
+        state (which is already a balanced layout).
+      */}
+      {hasQuery && (
+        <div>
+          <button
+            type="button"
+            onClick={() => onQueryChange('')}
+            className="font-sans text-xs uppercase tracking-widest text-ink-muted hover:text-wine transition-colors"
+          >
+            ← Clear and browse
+          </button>
+        </div>
+      )}
 
       {/* Status area — kept compact and unobtrusive */}
       <div className="min-h-[1.5rem] text-sm">
