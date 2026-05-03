@@ -12,20 +12,21 @@ import { useState, useRef, useEffect } from 'react';
 // from region-affinities is omitted — title block sits directly above the
 // main content area.
 //
+// Documentation menu: only the Layer 1 Identity PDF, since that is the
+// exclusive source text for the semantic matcher. The other Soul of Wine
+// PDFs (terroir, technical, narrative, methods) are out of scope for
+// this tool's purpose, so we don't expose them here.
+//
 // PDF link convention: always append #page=1 so the browser forces page 1
 // instead of remembering the user's last scroll position from a prior visit.
 // ---------------------------------------------------------------------------
 
 const SOUL_OF_WINE_BASE = 'https://jskarabot18.github.io/soul-of-wine';
 
-// Documentation links — five PDFs from the Soul of Wine site
-// All URLs end with #page=1 so they always open at the start of the document
+// Region Resonances uses only the Layer 1 Identity narratives — the other
+// Soul of Wine PDFs aren't relevant to the matching this tool does.
 const DOCS = [
-  { label: 'The Map and the Soul',         href: `${SOUL_OF_WINE_BASE}/docs/narrative.pdf#page=1` },
-  { label: 'Technical Appendix',            href: `${SOUL_OF_WINE_BASE}/docs/technical.pdf#page=1` },
   { label: 'Region Profiles — Identity',    href: `${SOUL_OF_WINE_BASE}/docs/layer1-descriptions.pdf#page=1` },
-  { label: 'Region Profiles — Terroir',     href: `${SOUL_OF_WINE_BASE}/docs/layer2-descriptions.pdf#page=1` },
-  { label: 'Methods Primer',                href: `${SOUL_OF_WINE_BASE}/docs/methods-primer.pdf#page=1` },
 ];
 
 export default function Header() {
