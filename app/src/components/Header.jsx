@@ -12,21 +12,29 @@ import { useState, useRef, useEffect } from 'react';
 // from region-affinities is omitted — title block sits directly above the
 // main content area.
 //
-// Documentation menu: only the Layer 1 Identity PDF, since that is the
-// exclusive source text for the semantic matcher. The other Soul of Wine
-// PDFs (terroir, technical, narrative, methods) are out of scope for
-// this tool's purpose, so we don't expose them here.
+// Documentation menu: three documents.
+//   1. Methodology and Interpretation — companion document for general
+//      readers, explaining the matching procedure conceptually.
+//   2. Technical Appendix — mathematical concepts behind the procedure.
+//   3. Region Profiles — Identity (Layer 1) — the source text the matcher
+//      operates on. Other Soul of Wine PDFs (terroir, technical, narrative,
+//      methods) are out of scope for this tool's purpose, so we don't
+//      expose them here.
 //
 // PDF link convention: always append #page=1 so the browser forces page 1
 // instead of remembering the user's last scroll position from a prior visit.
+// Local PDFs live in app/public/docs/ and are served at /docs/* by Vite.
 // ---------------------------------------------------------------------------
 
 const SOUL_OF_WINE_BASE = 'https://jskarabot18.github.io/soul-of-wine';
 
-// Region Resonances uses only the Layer 1 Identity narratives — the other
-// Soul of Wine PDFs aren't relevant to the matching this tool does.
+// Region Resonances ships its own methodology and technical primer, plus
+// the Layer 1 Identity narratives from the parent project (the source text
+// for the semantic matcher).
 const DOCS = [
-  { label: 'Region Profiles — Identity',    href: `${SOUL_OF_WINE_BASE}/docs/layer1-descriptions.pdf#page=1` },
+  { label: 'Methodology and Interpretation', href: '/docs/region_resonances_methodology.pdf#page=1' },
+  { label: 'Technical Appendix',             href: '/docs/region_resonances_technical.pdf#page=1' },
+  { label: 'Region Profiles — Identity',     href: `${SOUL_OF_WINE_BASE}/docs/layer1-descriptions.pdf#page=1` },
 ];
 
 export default function Header() {
