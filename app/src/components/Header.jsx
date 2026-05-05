@@ -23,17 +23,20 @@ import { useState, useRef, useEffect } from 'react';
 //
 // PDF link convention: always append #page=1 so the browser forces page 1
 // instead of remembering the user's last scroll position from a prior visit.
-// Local PDFs live in app/public/docs/ and are served at /docs/* by Vite.
+// Local PDFs live in app/public/docs/ and are served at <BASE>docs/* by Vite.
+// We prefix with import.meta.env.BASE_URL so the same code works both in
+// local dev (BASE_URL = '/') and on GitHub Pages (BASE_URL = '/region-resonances/').
 // ---------------------------------------------------------------------------
 
 const SOUL_OF_WINE_BASE = 'https://jskarabot18.github.io/soul-of-wine';
+const BASE = import.meta.env.BASE_URL;
 
 // Region Resonances ships its own methodology and technical primer, plus
 // the Layer 1 Identity narratives from the parent project (the source text
 // for the semantic matcher).
 const DOCS = [
-  { label: 'Methodology and Interpretation', href: '/docs/region_resonances_methodology.pdf#page=1' },
-  { label: 'Technical Appendix',             href: '/docs/region_resonances_technical.pdf#page=1' },
+  { label: 'Methodology and Interpretation', href: `${BASE}docs/region_resonances_methodology.pdf#page=1` },
+  { label: 'Technical Appendix',             href: `${BASE}docs/region_resonances_technical.pdf#page=1` },
   { label: 'Region Profiles — Identity',     href: `${SOUL_OF_WINE_BASE}/docs/layer1-descriptions.pdf#page=1` },
 ];
 
