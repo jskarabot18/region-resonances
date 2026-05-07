@@ -5,26 +5,21 @@ import { useState, useRef, useEffect } from 'react';
 //
 // Matches region-affinities Header.jsx structure:
 //   - TopStrip with wordmark, Vinotheca link, Documentation dropdown
-//   - Title block: eyebrow ("A Tool of The Soul of Wine"), mixed-italic
+//   - Title block: eyebrow ("A Tool of Vinotheca"), mixed-italic
 //     title ("Region Resonances"), subtitle with structural prose
 //
 // Region Resonances has no tab navigation (single view), so the tab nav
 // from region-affinities is omitted — title block sits directly above the
 // main content area.
 //
-// Documentation menu: five documents.
-//   1. Summary — plain-language overview (replaces narrative.pdf)
-//   2. Technical Appendix — mathematical framework, algorithms,
-//      implementation
-//   3. Methods Primer — guide to embeddings, cosine similarity, and the
-//      display calibration
-//   4. Data Appendix — corpus listing, embedding-model spec, calibration
-//      constants, operating characteristics
-//   5. Region Reference — Identity (Layer 1)  [shared with Region Affinities;
-//      hosted in the soul-of-wine repo]
-//
-// Region Resonances does not use the terroir layer, so the Layer 2 Region
-// Reference is intentionally omitted.
+// Documentation menu: three documents.
+//   1. Methodology and Interpretation — companion document for general
+//      readers, explaining the matching procedure conceptually.
+//   2. Technical Appendix — mathematical concepts behind the procedure.
+//   3. Region Profiles — Identity (Layer 1) — the source text the matcher
+//      operates on. Other Soul of Wine PDFs (terroir, technical, narrative,
+//      methods) are out of scope for this tool's purpose, so we don't
+//      expose them here.
 //
 // PDF link convention: always append #page=1 so the browser forces page 1
 // instead of remembering the user's last scroll position from a prior visit.
@@ -36,14 +31,13 @@ import { useState, useRef, useEffect } from 'react';
 const SOUL_OF_WINE_BASE = 'https://jskarabot18.github.io/soul-of-wine';
 const BASE = import.meta.env.BASE_URL;
 
-// Region Resonances ships its own 4-document set, plus the Layer 1 Identity
-// narratives from the parent project (the source text for the semantic matcher).
+// Region Resonances ships its own methodology and technical primer, plus
+// the Layer 1 Identity narratives from the parent project (the source text
+// for the semantic matcher).
 const DOCS = [
-  { label: 'Summary',                       href: `${BASE}docs/RegionResonances_Summary.pdf#page=1` },
-  { label: 'Technical Appendix',            href: `${BASE}docs/RegionResonances_Technical_Appendix.pdf#page=1` },
-  { label: 'Methods Primer',                href: `${BASE}docs/RegionResonances_Methods_Primer.pdf#page=1` },
-  { label: 'Data Appendix',                 href: `${BASE}docs/RegionResonances_Data_Appendix.pdf#page=1` },
-  { label: 'Region Reference — Identity',   href: `${SOUL_OF_WINE_BASE}/docs/layer1-descriptions.pdf#page=1` },
+  { label: 'Methodology and Interpretation', href: `${BASE}docs/region_resonances_methodology.pdf#page=1` },
+  { label: 'Technical Appendix',             href: `${BASE}docs/region_resonances_technical.pdf#page=1` },
+  { label: 'Region Profiles — Identity',     href: `${SOUL_OF_WINE_BASE}/docs/layer1-descriptions.pdf#page=1` },
 ];
 
 export default function Header() {
@@ -54,7 +48,7 @@ export default function Header() {
       <div className="bg-parchment-warm border-b border-parchment-edge">
         <div className="max-w-6xl mx-auto px-6 pt-8 pb-8">
           <div className="flex items-baseline gap-4 mb-1">
-            <p className="small-caps text-wine">A Tool of The Soul of Wine</p>
+            <p className="small-caps text-wine">A Tool of Vinotheca</p>
           </div>
           <h1 className="text-4xl md:text-5xl font-serif italic mb-2">
             Region <span className="not-italic font-semibold">Resonances</span>
