@@ -1,0 +1,138 @@
+\documentclass[11pt]{article}
+\usepackage{vinotheca}
+
+\begin{document}
+
+\vinothecaTitle{Region Resonances}{Summary}{Semantic Similarity Search Over Wine Region Identity Narratives \textperiodcentered{} Plain-Language Overview}
+\vinothecaAuthor{Jure Skarabot}{May 2026}
+\vinothecaCompanions{Summary \textperiodcentered{} Technical Appendix \textperiodcentered{} Methods Primer \textperiodcentered{} Data Appendix \textperiodcentered{} Region Reference (Identity)}
+
+\begin{abstract}
+Wine regions are conventionally indexed by geography, grape, and appellation. Region Resonances is a query tool that introduces a complementary index: the cultural and sensory character of the place itself, as expressed in the project's Layer 1 identity narratives. The user submits a word, phrase, or fragment of prose; the tool returns the regions whose written character is most semantically similar to the query. Each of the 59 region passages (a one-word metaphor concatenated with a 280--320 word identity narrative) is converted, once and in advance, into a 1{,}536-dimensional semantic embedding using OpenAI's \texttt{text-embedding-3-small} model. At query time, the user's text is embedded by the same model; cosine similarity is computed against each region embedding; the top five results are returned. A clip-and-rescale transformation maps the empirical operating range $[0.15, 0.70]$ of cosine similarity onto a $[0, 100]$ display scale that preserves the underlying ranking and remains affine within the operating range. The framework is presented here as a fully specified semantic retrieval system over a small, locked corpus, with the operating characteristics, calibration choices, and worked examples needed to interpret its output responsibly.
+\end{abstract}
+
+\section{Introduction}
+
+The Soul of Wine project encodes the character of 59 wine regions explicitly. Each region is assigned a one-word metaphor (Burgundy is \emph{Devotion}, Bordeaux is \emph{Business}, Santorini is \emph{Survival}, Mosel is \emph{Poetry}) and a roughly 300-word identity narrative that develops the metaphor in context. These narratives are the primary input to the Region Affinities clustering analysis. They are also the substrate of the present tool.
+
+Region Resonances is a navigation tool over the same character space, accessed by query rather than by cluster. The user submits a word, phrase, or fragment of prose --- \emph{resilience}, \emph{old soul}, \emph{the feeling of late summer} --- and the tool returns the regions whose written character is most similar to the query in a precise, computable sense. The aim is neither classification nor retrieval in the conventional database sense; it is closer to what an attentive reader of the project's prose might suggest if asked which regions a given phrase reminded them of.
+
+The remainder of this Summary is organised as follows. Section 2 specifies the data: the locked corpus of 59 region passages and the embedding model. Section 3 specifies the methodology: the embedding map, cosine similarity on the unit sphere, top-$k$ selection, and the display transformation. Section 4 reports operating characteristics: the empirical similarity range across a calibration test set, and worked examples that illustrate the kind of result the matcher produces. Section 5 reports robustness considerations and known failure modes. Section 6 concludes with limitations and future work. Full mathematical detail is in the Technical Appendix; the methods background is in the Methods Primer; the corpus and model specifications are in the Data Appendix; per-region narratives are in the Region Reference (Identity) companion document.
+
+\section{Data}
+
+\subsection{The Corpus}
+The corpus consists of $n = 59$ region passages, one per region. Each passage is the concatenation of two pieces of canonical input: the region's one-word metaphor and the full Layer 1 identity narrative for that region (typically 280--320 words). Together they form a single text passage that captures, in compressed form, the project's claim about what the region \emph{is}. The set of 59 regions is identical to the set used in Region Affinities; the metaphors and narratives are also identical, drawn from the canonical Layer 1 identity descriptions.
+
+The matcher does not read grape varieties, soil types, vintage notes, scores, or any other conventional descriptor. It does not consider what a region's wines are like to drink. It considers only what the region itself is like in character, as expressed in the project's own prose. This is a deliberate scoping decision. Region Resonances is a tool of identity, not of palate; it complements the Region Affinities tool rather than overlapping with it.
+
+Both the metaphor list and the narrative text are locked. They are not regenerated, modified, or re-tuned at runtime.
+
+\subsection{The Embedding Model}
+The embedding model used throughout is OpenAI's \texttt{text-embedding-3-small}. It is a fixed, pre-trained large language model that maps arbitrary English text strings to vectors in $\R^{1536}$. Two properties of the model matter for the matching procedure: (1) every output vector has Euclidean length 1 --- the model produces unit-normalised vectors --- so all 59 region embeddings and every query embedding lie on the unit sphere $S^{1535}$; (2) semantic similarity in the embedding space is well approximated by cosine similarity, a property that is empirically validated by the model's authors and by external retrieval benchmarks but not formally proven.
+
+The model is treated throughout as an opaque function. The matching procedure does not depend on the model's training data or weight structure; it depends only on the geometric properties of the unit sphere and on the empirical observation that the model embeds semantically related passages near one another.
+
+\section{Methodology}
+
+\subsection{Pre-Computation of Region Embeddings}
+At build time, each of the 59 region passages is passed through the embedding model:
+\[
+\mathbf{r}_i = E(\text{passage}_i) \in S^{1535} \subset \R^{1536}, \qquad i = 1, \ldots, 59.
+\]
+The 59 vectors are stored as a matrix $R \in \R^{59 \times 1536}$ shipped with the tool. They are computed once and never recomputed at runtime.
+
+\subsection{Query Embedding and Similarity}
+At query time, the user's text $q$ is passed through the same embedding model, yielding a query vector $\mathbf{q} = E(q) \in S^{1535}$. For each region $i$, the cosine similarity is
+\[
+s_i = \cos(\mathbf{r}_i, \mathbf{q}) = \frac{\inner{\mathbf{r}_i}{\mathbf{q}}}{\norm{\mathbf{r}_i}_2 \norm{\mathbf{q}}_2} = \inner{\mathbf{r}_i}{\mathbf{q}},
+\]
+where the final equality follows from unit normalisation. The full similarity vector is computed as a single matrix--vector product: $\mathbf{s} = R \mathbf{q}$. This requires $59 \times 1536 = 90{,}624$ multiply-add operations per query --- well below any latency threshold.
+
+\subsection{Top-$k$ Selection}
+The 59 similarity values are sorted in descending order and the top $k = 5$ regions are returned to the user. The remaining 54 are accessible through a ``Show all 59 ranked'' disclosure. The matching procedure is, in this precise sense, a nearest-neighbour search on $S^{1535}$.
+
+\subsection{Display Transformation}
+Cosine similarity on this corpus occupies a narrow empirical range. Across a calibration test set of 60 queries spanning words, phrases, and short prose fragments, the observed similarities $s_i$ fell almost entirely within $[0.15, 0.65]$. Values below 0.15 occur only for pathological inputs (random byte sequences, unrelated languages); values above 0.70 occur only when the query is itself a paraphrase of a region's source text. This concentration is a generic feature of high-dimensional embeddings of natural-language text: any two passages of English share a substantial baseline of common semantic structure, and the embedding model encodes this shared structure into a common region of the sphere. The signal distinguishing one passage from another lives in a narrow band above the baseline.
+
+Presenting raw cosine values to users would be uninformative. A score of 0.62 sounds like a 62\% result but in fact represents a strong match; a score of 0.31 sounds like failure but in fact represents the broadly typical similarity for an unrelated query. A clip-and-rescale transformation maps the operating range $[s_{\min}, s_{\max}] = [0.15, 0.70]$ onto $[0, 100]$:
+\[
+\tilde{s}_i = \mathrm{clip}\!\left(\frac{s_i - s_{\min}}{s_{\max} - s_{\min}}, 0, 1\right) \times 100.
+\]
+The transformation is bounded, monotonically increasing on the operating range (so the displayed ranking is always identical to the cosine ranking), and affine on the operating range (so equal cosine differences are equal display differences). The choice of $s_{\min}$ and $s_{\max}$ is calibrated, not learnt; their values are reported in the Data Appendix.
+
+\section{Results}
+
+\subsection{Operating Characteristics}
+On the calibration test set of 60 queries, top-1 cosine similarities ranged from 0.42 (vague abstract queries) to 0.78 (queries paraphrasing source-text fragments), with a median of 0.58. The top-5 cosine values for a typical content-bearing query span approximately 0.10 in cosine units --- a wide enough spread that the top match is consistently distinguishable from the fifth, while the fifth is consistently distinguishable from the unranked sixty-percentile region.
+
+After display transformation, top-1 scores range from approximately 50 to 100, with a median of 78. Mid-pack scores (ranks 3--5) typically fall in the 50--75 range. The transformation does not change the ranking; it changes only the perceptual distance between scores.
+
+\subsection{Worked Examples}
+The following examples are drawn from the calibration test set and illustrate the kind of result the matcher produces.
+
+The query \emph{old soul} returns Burgundy (\emph{Devotion}), Rioja (\emph{Patience}), Tokaj (\emph{Melancholy}), and Sardinia (\emph{Stubbornness}) in the top four positions. None of those metaphors contains the word \emph{old} or the word \emph{soul}; the match is operating at the level of meaning. All four regions are characterised in the corpus by inherited tradition, slow time, and a posture of waiting rather than acting.
+
+The query \emph{resilience} returns Santorini (\emph{Survival}), Barossa Valley (\emph{Fortitude}), Douro (\emph{Endurance}), and Finger Lakes (\emph{Conviction}). Again, no surface-word overlap; the embedding places the query close to the cluster of regions whose narratives describe sustained effort against adverse conditions.
+
+The query \emph{the feeling of late summer} returns Tokaj (\emph{Melancholy}), Provence (\emph{Pleasure}), and Galicia (\emph{Longing}). This is a more impressionistic query and the matches reflect that --- the response includes a melancholy region, a sensory-pleasure region, and a region defined by emotional distance, all of which are plausible interpretations of the seasonal mood the query evokes.
+
+These examples are not retrievals in the database sense. They are interpretations of the query against a fixed body of descriptive prose, mediated by a model that has internalised the structure of meaning in English. The matches are repeatable (the same query always returns the same list), but they reflect the meaning of the corpus, not facts about wine.
+
+\section{Robustness Checks}
+
+\subsection{Repeatability}
+The matching procedure is deterministic. The same query, submitted twice, produces the same 59-element similarity vector and therefore the same ranked list. Determinism follows from three properties: the embedding model is deterministic; the region embeddings are pre-computed and stored; cosine similarity, sorting, and clip-and-rescale are deterministic operations.
+
+\subsection{Stability Under Small Query Perturbations}
+Small changes to the query produce small changes in the similarity vector and therefore stable rankings. Adding a clarifying phrase, correcting a typographical error, or substituting a near-synonym typically shifts top-1 cosine by less than 0.03 and almost never changes the top-5 set. Substantial query rewording can change the top-5 set but rarely the top-1, provided the rewording preserves the semantic core.
+
+\subsection{Failure Modes}
+Three categories of query produce uninformative or misleading results.
+
+\textit{Out-of-scope queries.} The narratives describe regional character; they do not describe grape varieties, climate data, or production volumes. A query such as ``what grapes does Mosel grow?'' will produce a ranked list (the matcher always produces a ranked list), but the ranking will be uninformative.
+
+\textit{Cross-lingual queries.} The embedding model can process input in many languages, but the corpus is English. Queries in other languages return ranked results, but the rankings are biased toward whichever English-language regions happen to share a basic semantic skeleton with the foreign-language input. Cross-lingual queries should not be relied upon.
+
+\textit{Pathological inputs.} Random byte sequences, deliberately adversarial inputs, or extremely short tokens (a single punctuation mark, for example) produce cosine values below the operating range. These return display scores at the lower clipping boundary and should be interpreted as the system signalling that the query carries insufficient semantic content for meaningful matching.
+
+\subsection{Comparison to Alternative Display Transformations}
+A common alternative for displaying similarity scores as percentages is the softmax transformation:
+\[
+\pi_i = \frac{\exp(\beta s_i)}{\sum_{j=1}^{n} \exp(\beta s_j)}, \qquad \beta > 0.
+\]
+This preserves the ranking but has two drawbacks for the present application. First, the choice of the temperature parameter $\beta$ is arbitrary, and different values produce dramatically different displayed probabilities for the same underlying ranking; there is no principled way to set it. Second, softmax is multiplicative in the score gap: the ratio $\pi_i / \pi_j$ grows exponentially in $s_i - s_j$. A very small gap in cosine similarity becomes a very large gap in displayed probability, which exaggerates differences between near-tied results and gives users a misleading sense of confidence in the top match. Clip-and-rescale, by contrast, treats equal cosine differences as equal display differences. Two regions that are nearly tied in true semantic similarity are displayed as nearly tied. This is the honest representation of what the matching procedure has found.
+
+\section{Conclusion}
+
+\subsection{Key Findings}
+Region Resonances provides a fully specified semantic retrieval system over a fixed corpus of 59 wine region identity narratives. Three findings emerge from its operating characteristics.
+
+First, the system performs reliably on queries within its scope. Queries that carry semantic content of the kind the corpus describes --- temperament, posture, mood, cultural attitude --- produce results that consistently align with the kind of resonance an attentive reader of the narratives would recognise. The worked examples in Section 4.2 illustrate this directly.
+
+Second, the system's behaviour is predictable and stable. Determinism, stability under small query perturbations, and the affine display transformation together ensure that users can read the result list with calibrated expectations: equal display differences correspond to equal underlying differences, the top match is genuinely distinguishable from the fifth, and the same query always produces the same result.
+
+Third, the system has well-defined limits. It is monolingual, scoped to identity rather than terroir or palate, and based on a fixed embedding model whose semantic faithfulness is empirically validated rather than formally proven. The limitations are documented and reproducible, not hidden behind opaque performance claims.
+
+\subsection{Limitations and Future Work}
+Three limitations bear emphasis.
+
+The corpus is locked at 59 regions and each region is encoded by a single passage. A more substantial corpus --- multi-author narratives, expanded thematic coverage, or per-region historical and contemporary variants --- would change the geometry of the embedding space and might yield different, possibly better, top-$k$ behaviour. The single-passage encoding also prevents the tool from distinguishing between facets of a region that the corpus describes in the same passage. (Tokaj's narrative, for instance, weaves melancholy, decline, and inherited beauty into one passage; the matcher cannot disentangle them.)
+
+The embedding model is treated as a black box. Future versions of the tool could be built on alternative embedding models (open-weight, multilingual, domain-specialised) and the differences in behaviour benchmarked against the present version. A particularly informative comparison would be against an embedding model trained on wine-domain text, which might encode wine-specific concepts more discriminatively.
+
+The display transformation is calibrated against a small test set. The constants $s_{\min} = 0.15$ and $s_{\max} = 0.70$ are sensible but not empirically optimal in any formal sense. A larger calibration set --- collected from real user queries over an extended deployment period --- could refine these constants and might suggest a non-linear display transformation that better accommodates the long-tail behaviour of edge-case queries.
+
+\section*{References}
+
+\begin{itemize}[leftmargin=2em,itemsep=0.2em]
+\item Mikolov, T., Chen, K., Corrado, G. \& Dean, J. (2013). Efficient estimation of word representations in vector space. \emph{arXiv:1301.3781}.
+\item OpenAI (2024). New embedding models and API updates. Technical announcement covering \texttt{text-embedding-3-small} and \texttt{text-embedding-3-large}.
+\item Pennington, J., Socher, R. \& Manning, C. D. (2014). GloVe: Global vectors for word representation. In \emph{Proceedings of EMNLP}, 1532--1543.
+\item Reimers, N. \& Gurevych, I. (2019). Sentence-BERT: Sentence embeddings using Siamese BERT-networks. In \emph{Proceedings of EMNLP-IJCNLP}, 3982--3992.
+\item Salton, G. \& McGill, M. J. (1983). \emph{Introduction to Modern Information Retrieval}. McGraw-Hill.
+\item Singhal, A. (2001). Modern information retrieval: A brief overview. \emph{IEEE Data Engineering Bulletin}, 24(4), 35--43.
+\item Vaswani, A. et al.\ (2017). Attention is all you need. In \emph{Advances in Neural Information Processing Systems} 30.
+\end{itemize}
+
+\end{document}

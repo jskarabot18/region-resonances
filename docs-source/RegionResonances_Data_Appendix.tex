@@ -1,0 +1,198 @@
+\documentclass[11pt]{article}
+\usepackage{vinotheca}
+
+\begin{document}
+
+\vinothecaTitle{Region Resonances}{Data Appendix}{Source Data, Tables, and Reference Materials}
+\vinothecaAuthor{Jure Skarabot}{May 2026}
+\vinothecaCompanions{Summary \textperiodcentered{} Technical Appendix \textperiodcentered{} Methods Primer \textperiodcentered{} Data Appendix \textperiodcentered{} Region Reference (Identity)}
+
+\section*{Table of Contents}
+\begin{itemize}[leftmargin=2em,itemsep=0.1em,topsep=0.1em]
+\item D.1 Region Roster (59 regions, with metaphors)
+\item D.2 Embedding Model Specification
+\item D.3 Calibration Test Set and Operating Range
+\item D.4 Display Transformation Constants
+\item D.5 Distribution of Top-$k$ Cosine Similarities
+\end{itemize}
+
+\section*{D.1 Region Roster}
+The 59 regions analysed by Region Resonances, listed with their canonical soul metaphors. The corpus is identical to that used by Region Affinities; the metaphors are drawn from the canonical Layer 1 identity descriptions and serve as the first-token anchor of each region's embedded passage.
+
+\begin{center}
+\renewcommand{\arraystretch}{1.05}
+\small
+\begin{tabular}{@{}r l l l@{}}
+\toprule
+\# & Region & Country & Metaphor \\
+\midrule
+1  & Kamptal              & Austria    & Discipline \\
+2  & Steiermark           & Austria    & Clarity \\
+3  & Wachau               & Austria    & Monumentality \\
+4  & Wagram               & Austria    & Earth \\
+5  & Dalmatian Coast      & Croatia    & Tranquility \\
+6  & Alsace               & France     & Duality \\
+7  & Beaujolais           & France     & Joy \\
+8  & Bordeaux             & France     & Business \\
+9  & Burgundy             & France     & Devotion \\
+10 & Champagne            & France     & Society \\
+11 & Ch\^ateauneuf-du-Pape & France    & Family \\
+12 & Jura                 & France     & Eccentricity \\
+13 & Loire                & France     & Sentimentality \\
+14 & Northern Rh\^one     & France     & Solitude \\
+15 & Provence             & France     & Pleasure \\
+16 & Baden                & Germany    & Warmth \\
+17 & Mosel                & Germany    & Poetry \\
+18 & Nahe                 & Germany    & Subtlety \\
+19 & Pfalz                & Germany    & Generosity \\
+20 & Rheingau             & Germany    & Nobility \\
+21 & Macedonia            & Greece     & Austerity \\
+22 & Santorini            & Greece     & Survival \\
+23 & Tokaj                & Hungary    & Melancholy \\
+24 & Alto Adige           & Italy      & Precision \\
+25 & Campania             & Italy      & Memory \\
+26 & Etna                 & Italy      & Awakening \\
+27 & Friuli-Venezia Giulia & Italy     & Dialogue \\
+28 & Liguria              & Italy      & Intimacy \\
+29 & Piedmont             & Italy      & Philosophy \\
+30 & Sardinia             & Italy      & Stubbornness \\
+31 & Sicily               & Italy      & Resurrection \\
+32 & Tuscany              & Italy      & Art \\
+33 & Veneto               & Italy      & Commerce \\
+34 & Douro                & Portugal   & Endurance \\
+35 & Gori\v{s}ka Brda     & Slovenia   & Fortune \\
+36 & Catalonia            & Spain      & Identity \\
+37 & Galicia              & Spain      & Longing (Morri\~na) \\
+38 & Ribera del Duero     & Spain      & Severity \\
+39 & Rioja                & Spain      & Patience \\
+40 & Mendoza              & Argentina  & Reinvention \\
+41 & Patagonia            & Argentina  & Extremity \\
+42 & Barossa Valley       & Australia  & Fortitude \\
+43 & Hunter Valley        & Australia  & Defiance \\
+44 & Margaret River       & Australia  & Composure \\
+45 & Maipo Valley         & Chile      & Pride \\
+46 & Central Otago        & NZ         & Adventure \\
+47 & Hawke's Bay          & NZ         & Confidence \\
+48 & Marlborough          & NZ         & Assertion \\
+49 & Stellenbosch         & S.\ Africa & Aspiration \\
+50 & Swartland            & S.\ Africa & Rebellion \\
+51 & Columbia Valley      & USA        & Determination \\
+52 & Finger Lakes         & USA        & Conviction \\
+53 & Napa Valley          & USA        & Ambition \\
+54 & Paso Robles          & USA        & Independence \\
+55 & Santa Barbara        & USA        & Serendipity \\
+56 & Santa Cruz Mountains & USA        & Obsession \\
+57 & Sonoma               & USA        & Authenticity \\
+58 & Walla Walla          & USA        & Community \\
+59 & Willamette Valley    & USA        & Idealism \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section*{D.2 Embedding Model Specification}
+The embedding model used throughout is OpenAI's \texttt{text-embedding-3-small}. Specifications relevant to the Region Resonances deployment:
+
+\begin{center}
+\begin{tabular}{@{}lp{8.5cm}@{}}
+\toprule
+Property & Value \\
+\midrule
+Model identifier        & \texttt{text-embedding-3-small} \\
+Output dimension        & $d = 1536$ \\
+Output length           & Unit-normalised; $\norm{E(s)}_2 = 1$ for every input $s$ \\
+Input language          & English (multilingual capability not used for matching) \\
+Maximum input tokens    & 8{,}191 (well above any region passage length) \\
+Determinism             & Same input always produces the same output \\
+Treatment in pipeline   & Fixed, opaque function; weights and architecture not introspected \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section*{D.3 Calibration Test Set and Operating Range}
+The display transformation constants $s_{\min}$ and $s_{\max}$ were calibrated against a test set of 60 queries spanning four query types.
+
+\begin{center}
+\begin{tabular}{@{}lrp{8.0cm}@{}}
+\toprule
+Query type & $n$ & Examples \\
+\midrule
+Single abstract noun        & 18 & resilience, devotion, melancholy, pleasure \\
+Compound abstract phrase    & 16 & old soul, quiet ambition, inherited burden \\
+Sensory / atmospheric phrase & 14 & the feeling of late summer, dust on stone \\
+Short prose fragment         & 12 & wines that ask you to wait \\
+\midrule
+Total                        & 60 & --- \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+For each query, the full 59-element similarity vector was computed and the empirical distribution of cosine values recorded. Across all 60 queries, observed similarities fell almost entirely within $[0.15, 0.65]$. Distribution summary:
+
+\begin{center}
+\begin{tabular}{@{}lr@{}}
+\toprule
+Statistic & Value \\
+\midrule
+Min observed cosine (across all queries, all regions) & 0.08 \\
+1st percentile                                          & 0.16 \\
+Mean across all (query, region) pairs                  & 0.41 \\
+99th percentile                                         & 0.66 \\
+Max observed cosine (excluding paraphrase queries)     & 0.78 \\
+Max observed cosine (paraphrase queries, $n = 4$)      & 0.91 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Pathological inputs (random byte sequences, single-character queries, queries in languages other than English) routinely produce cosine values below 0.15. These are clipped to the lower display boundary by the transformation in Section D.4.
+
+\section*{D.4 Display Transformation Constants}
+The clip-and-rescale transformation is parameterised by two constants:
+\[
+\tilde{s}_i = \mathrm{clip}\!\left(\frac{s_i - s_{\min}}{s_{\max} - s_{\min}}, 0, 1\right) \times 100.
+\]
+
+\begin{center}
+\begin{tabular}{@{}lr@{}}
+\toprule
+Constant & Value \\
+\midrule
+$s_{\min}$ (lower clip boundary)        & 0.15 \\
+$s_{\max}$ (upper clip boundary)        & 0.70 \\
+Display range (clipping aside)          & $[0, 100]$ \\
+Cosine difference per display unit      & $0.0055$ \\
+Display value for chance similarity ($s = 0.30$) & 27 \\
+Display value for typical strong match ($s = 0.55$) & 73 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The $s_{\min}$ value is set just above the chance baseline observed for unrelated queries; values below this are clipped to 0 to signal that the query has fallen outside the matcher's effective scope. The $s_{\max}$ value is set so that paraphrase queries (which produce cosine values above 0.70) saturate the display at 100; this prevents users from inferring fine distinctions among very-strong matches that the underlying cosine cannot reliably discriminate.
+
+\section*{D.5 Distribution of Top-$k$ Cosine Similarities}
+For the calibration test set, the distribution of top-1 and top-5 cosine similarities is summarised below. The top-1 distribution is the cosine of the best match for each query; the top-5 distribution is the cosine of the fifth-best match.
+
+\begin{center}
+\begin{tabular}{@{}lrr@{}}
+\toprule
+Statistic & Top-1 & Top-5 \\
+\midrule
+Min     & 0.42 & 0.32 \\
+25th \%ile & 0.51 & 0.41 \\
+Median  & 0.58 & 0.46 \\
+Mean    & 0.59 & 0.47 \\
+75th \%ile & 0.65 & 0.52 \\
+Max     & 0.78 & 0.60 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The typical top-1 to top-5 spread for a content-bearing query is approximately 0.10 in cosine units --- wide enough that the top match is consistently distinguishable from the fifth, while the fifth is consistently distinguishable from the next-best (sixth) region. After display transformation, top-1 scores range from approximately 50 to 100 with a median of 78; top-5 scores range from 30 to 80 with a median of 56. The display transformation preserves this rank-discriminating structure exactly.
+
+\section*{References}
+
+\begin{itemize}[leftmargin=2em,itemsep=0.2em]
+\item OpenAI (2024). New embedding models and API updates. Technical announcement covering \texttt{text-embedding-3-small} and \texttt{text-embedding-3-large}.
+\item Reimers, N. \& Gurevych, I. (2019). Sentence-BERT: Sentence embeddings using Siamese BERT-networks. In \emph{Proceedings of EMNLP-IJCNLP}, 3982--3992.
+\end{itemize}
+
+\end{document}

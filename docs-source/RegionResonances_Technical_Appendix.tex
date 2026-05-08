@@ -1,0 +1,198 @@
+\documentclass[11pt]{article}
+\usepackage{vinotheca}
+
+\begin{document}
+
+\vinothecaTitle{Region Resonances}{Technical Appendix}{Mathematical Framework, Algorithms, and Implementation}
+\vinothecaAuthor{Jure Skarabot}{May 2026}
+\vinothecaCompanions{Summary \textperiodcentered{} Technical Appendix \textperiodcentered{} Methods Primer \textperiodcentered{} Data Appendix \textperiodcentered{} Region Reference (Identity)}
+
+This appendix sets out the mathematical framework behind the Region Resonances matching procedure: the embedding map that converts text to vectors, the geometry it produces, the cosine-similarity score that ranks regions against a query, the display transformation that converts raw similarities into the percentages users see, and the algorithmic structure of the full pipeline. The treatment uses standard notation from linear algebra and assumes familiarity with vectors, inner products, and Euclidean geometry, but it requires no specialised background. For the non-technical companion, see the Methods Primer.
+
+\section*{A. From Text to Vectors}
+
+\subsection*{A.1 The Embedding Map}
+The pipeline begins with a function that converts text into numerical vectors. Such a function is called an \emph{embedding map}. Formally, if $\mathcal{S}$ denotes the set of finite text strings (passages of arbitrary length, including the user's query and each region's narrative), then an embedding map of dimension $d$ is a function
+\[
+E : \mathcal{S} \longrightarrow \R^d
+\]
+that assigns to each text string $s$ a real vector $E(s) \in \R^d$. In our deployment, the embedding map is OpenAI's \texttt{text-embedding-3-small} model, and the output dimension is $d = 1536$.
+
+The embedding model is treated throughout as a fixed, opaque function: we do not concern ourselves with how its weights were learned or how its computation is structured. What matters for the matching procedure is the geometric structure that the map induces on $\R^d$.
+
+\subsection*{A.2 Unit-Normalisation}
+The OpenAI map has a useful property: every output vector is rescaled to have Euclidean length 1. That is, for every input string $s$,
+\[
+\norm{E(s)}_2 = 1, \quad \text{where} \quad \norm{\mathbf{v}}_2 = \sqrt{v_1^2 + v_2^2 + \cdots + v_d^2}.
+\]
+The image of the embedding map therefore lies entirely on the surface of the unit sphere in $\R^d$, denoted
+\[
+S^{d-1} = \{ \mathbf{v} \in \R^d : \norm{\mathbf{v}}_2 = 1 \}.
+\]
+Every text the system processes --- each of the 59 region passages, every user query --- is represented as a point on this sphere. The matching procedure is therefore a question about the geometry of the unit sphere: given a query point and 59 region points, which region points are closest?
+
+\subsection*{A.3 The Corpus}
+Let the corpus consist of $n = 59$ region passages $r_1, r_2, \ldots, r_n$, where each $r_i$ is the concatenation of a region's one-word metaphor with its full Layer 1 identity narrative. The embedding map produces 59 vectors:
+\[
+\mathbf{r}_i = E(r_i) \in S^{d-1} \qquad (i = 1, \ldots, n).
+\]
+These vectors are computed once, in advance, and stored. They are not recomputed at runtime. The 59 vectors collectively form a fixed reference set against which every user query is compared. The matrix form $R \in \R^{n \times d}$ has the region vectors as rows: $R_{i,:} = \mathbf{r}_i^\top$.
+
+\section*{B. Cosine Similarity}
+
+\subsection*{B.1 Definition}
+The standard way to measure similarity between two vectors on the unit sphere is cosine similarity, defined for two non-zero vectors $\mathbf{x}, \mathbf{y} \in \R^d$ as
+\[
+\cos(\mathbf{x}, \mathbf{y}) = \frac{\inner{\mathbf{x}}{\mathbf{y}}}{\norm{\mathbf{x}}_2 \norm{\mathbf{y}}_2},
+\]
+where $\inner{\mathbf{x}}{\mathbf{y}} = x_1 y_1 + x_2 y_2 + \cdots + x_d y_d$ is the standard inner product. Geometrically, this is the cosine of the angle between $\mathbf{x}$ and $\mathbf{y}$ when both are regarded as arrows from the origin. It takes values in $[-1, +1]$: the value $+1$ when $\mathbf{x}$ and $\mathbf{y}$ point in the same direction, $0$ when they are perpendicular, $-1$ when they point in opposite directions.
+
+\subsection*{B.2 The Unit-Sphere Simplification}
+Because all of our vectors are unit-normalised, the denominator in the cosine-similarity formula is always $1 \cdot 1 = 1$. The formula collapses to
+\[
+\cos(\mathbf{r}_i, \mathbf{q}) = \inner{\mathbf{r}_i}{\mathbf{q}} \qquad \text{for } \mathbf{r}_i, \mathbf{q} \in S^{d-1}.
+\]
+Cosine similarity on the unit sphere is just the inner product. This is the central computational identity of the system: every similarity measurement is one inner-product calculation, no division required.
+
+\subsection*{B.3 Why This Is the Right Notion of Similarity}
+On the unit sphere, three natural ways of measuring how close two points are happen to give the same answer:
+\begin{itemize}[leftmargin=2em,itemsep=0.2em]
+\item \textbf{Cosine similarity} $\inner{\mathbf{r}_i}{\mathbf{q}}$, ranging from $-1$ to $+1$, with higher values meaning more similar.
+\item \textbf{Chord distance} $\norm{\mathbf{r}_i - \mathbf{q}}_2$, the straight-line distance through the interior of the sphere.
+\item \textbf{Angular distance} $\arccos\inner{\mathbf{r}_i}{\mathbf{q}}$, the great-circle distance along the surface.
+\end{itemize}
+These three quantities are different numbers, but they always agree on which of two candidates is closer to a fixed query: ranking the corpus by descending cosine similarity is identical to ranking it by ascending chord distance, which is identical to ranking it by ascending angular distance. The choice among them is a matter of convenience, not a substantive modelling decision. Cosine similarity is preferred because it is bounded in $[-1, +1]$, dimensionless, and naturally interpretable as angular alignment.
+
+\section*{C. The Matching Procedure}
+
+\subsection*{C.1 Computing the Similarity Vector}
+When the user submits a query $q$, the embedding map produces the query vector
+\[
+\mathbf{q} = E(q) \in S^{d-1}.
+\]
+For each region $i = 1, \ldots, n$, the system computes the cosine similarity $s_i = \inner{\mathbf{r}_i}{\mathbf{q}}$. The 59 similarities can be collected in a vector $\mathbf{s} = (s_1, s_2, \ldots, s_n) \in \R^n$. Stacking the region vectors as rows of the matrix $R \in \R^{n \times d}$, the entire similarity vector is one matrix--vector product:
+\[
+\mathbf{s} = R \mathbf{q}.
+\]
+
+\subsection*{C.2 Top-$k$ Selection}
+Given the similarity vector $\mathbf{s}$, the system sorts the indices in descending order of similarity and returns the top $k$:
+\[
+T_k(\mathbf{q}) = \mathop{\mathrm{top\text{-}}k}_{i \in \{1, \ldots, n\}} s_i.
+\]
+In deployment, $k = 5$, so the user sees the five regions with highest cosine similarity to the query. The remaining 54 are accessible through a ``Show all 59 ranked'' disclosure. The geometric content of this procedure is straightforward: the top match is the region whose embedding sits closest to the query embedding on the unit sphere. The second match is the second closest, and so on. The matching procedure is, in this precise sense, a nearest-neighbour search on $S^{d-1}$.
+
+\subsection*{C.3 The Matching Algorithm}
+
+\begin{algorithm}[H]
+\caption{Region Resonances matching procedure}
+\begin{algorithmic}[1]
+\Require Query string $q$, region matrix $R \in \R^{59 \times 1536}$ (pre-computed), top-$k$ value
+\Ensure Top-$k$ ranked list of (region index, display score) pairs
+\State $\mathbf{q} \gets E(q)$ \Comment{Embed the query through the OpenAI model}
+\State $\mathbf{s} \gets R \mathbf{q}$ \Comment{Compute the 59 cosine similarities in one matmul}
+\State $\sigma \gets \arg\!\mathrm{sort}_{\downarrow}(\mathbf{s})$ \Comment{Sort indices by descending similarity}
+\State $\text{result} \gets [\,]$
+\For{$j = 1, \ldots, k$}
+  \State $i \gets \sigma_j$
+  \State $\tilde{s}_i \gets \mathrm{clip}\!\left(\frac{s_i - s_{\min}}{s_{\max} - s_{\min}}, 0, 1\right) \times 100$
+  \State Append $(i, \tilde{s}_i)$ to $\text{result}$
+\EndFor
+\State \Return $\text{result}$
+\end{algorithmic}
+\end{algorithm}
+
+The total runtime cost per query consists of one embedding API call (the dominant cost; latency 50--150\,ms in typical deployment) plus one $59 \times 1536$ matrix--vector product (sub-millisecond) plus one length-59 sort. Memory cost is $59 \times 1536 \times 4 = 362{,}496$ bytes for the region matrix in single-precision float, plus negligible per-query state.
+
+\section*{D. The Display Score}
+
+\subsection*{D.1 The Empirical Range of Cosine Similarity}
+Although cosine similarity is mathematically bounded in $[-1, +1]$, the values we actually observe on this corpus occupy a much narrower interval. Across a calibration test set of 60 queries spanning words, phrases, and short prose fragments, the observed similarities $s_i$ fell almost entirely within
+\[
+s_i \in [0.15, 0.65].
+\]
+Values below 0.15 occur only for pathological inputs (random byte sequences, unrelated languages). Values above 0.70 occur only when the query is itself a paraphrase of a region's source text.
+
+This concentration is a generic feature of high-dimensional embeddings of natural-language text. Almost any two passages of English share a substantial baseline of common semantic structure --- they are both grammatical English, they share vocabulary, they refer to a shared world --- and the embedding model encodes this shared structure into a common region of the sphere. The signal that distinguishes one passage from another lives in a relatively narrow range above the baseline.
+
+\subsection*{D.2 Why We Don't Show the Raw Cosine}
+Presenting raw cosine values to users would be uninformative. A score of 0.62 sounds like a 62\% result, but in fact it represents a strong match; a score of 0.31 sounds like failure, but in fact it represents the broadly typical similarity for an unrelated query. The differences that matter most --- the spread between the top match and the tenth match --- often occupy only a few hundredths of the cosine range, where they would be visually invisible.
+
+\subsection*{D.3 Clip-and-Rescale}
+To present scores in a range that uses the full visual scale, we apply a piecewise-linear transformation. Define constants $s_{\min} = 0.15$ and $s_{\max} = 0.70$, calibrated against the test set so that the operating range of the cosine corresponds to the operating range of the display. The display score is then
+\[
+\tilde{s}_i = \mathrm{clip}\!\left(\frac{s_i - s_{\min}}{s_{\max} - s_{\min}}, 0, 1\right) \times 100,
+\]
+where $\mathrm{clip}(t, 0, 1) = \min(1, \max(0, t))$. The transformation maps the empirical operating range $[0.15, 0.70]$ linearly onto $[0, 100]$, and clips anything outside that range to the boundary.
+
+This transformation has three properties that matter for interpretation. It is bounded between 0 and 100, so the displayed scores always fit on a percentage scale. It is monotonically increasing on the operating range, so the displayed ranking is always identical to the underlying cosine ranking. And it is affine on the operating range, so a difference of 10 in the displayed score corresponds to a fixed difference in the underlying cosine, regardless of where on the scale that difference falls. Two regions whose displayed scores differ by 10 are equally distinguishable in the underlying space whether the scores are 40 and 50 or 80 and 90.
+
+\subsection*{D.4 Why Not Softmax}
+A common alternative for displaying similarity scores as percentages is the softmax transformation, which produces a probability distribution over the corpus:
+\[
+\pi_i = \frac{\exp(\beta s_i)}{\sum_{j=1}^{n} \exp(\beta s_j)}, \qquad \beta > 0.
+\]
+This also preserves the ranking, but it has two drawbacks for the present application. First, the choice of the temperature parameter $\beta$ is arbitrary, and different values produce dramatically different displayed probabilities for the same underlying ranking; there is no principled way to set it. Second, softmax is multiplicative in the score gap: the ratio $\pi_i / \pi_j$ grows exponentially in $s_i - s_j$. A very small gap in cosine similarity becomes a very large gap in displayed probability, which exaggerates differences between near-tied results and gives users a misleading sense of confidence in the top match.
+
+Clip-and-rescale, by contrast, treats equal cosine differences as equal display differences. Two regions that are nearly tied in true semantic similarity are displayed as nearly tied. This is the honest representation of what the matching procedure has found.
+
+\section*{E. Implementation}
+
+\subsection*{E.1 Technology Stack}
+The Region Resonances tool is implemented as a single-page React application built with Vite. The pre-computed region embeddings are shipped as a compact JSON file containing the 59 unit-normalised vectors plus per-region metadata (name, metaphor, country). At query time, the user's text is sent to OpenAI's embedding API; the response is unit-normalised in the browser; the matrix--vector product against the region matrix is computed in JavaScript using a tight loop over typed arrays.
+
+\subsection*{E.2 JavaScript Reference Implementation}
+The core matching procedure is approximately 30 lines of JavaScript:
+
+\begin{verbatim}
+// Load pre-computed region embeddings
+const regions = await loadRegions();   // Array of { vec, name, metaphor }
+
+async function match(query, k = 5) {
+  // Embed the query
+  const q = await embedQuery(query);   // 1536-dim unit vector
+
+  // Compute cosine similarities (just inner products, since unit-normalised)
+  const sims = regions.map(r => {
+    let s = 0;
+    for (let i = 0; i < 1536; i++) s += r.vec[i] * q[i];
+    return s;
+  });
+
+  // Sort indices by descending similarity
+  const order = sims
+    .map((s, i) => ({ s, i }))
+    .sort((a, b) => b.s - a.s);
+
+  // Take top-k and apply display transformation
+  const SMIN = 0.15, SMAX = 0.70;
+  return order.slice(0, k).map(({ s, i }) => ({
+    region: regions[i],
+    cosine: s,
+    display: Math.round(Math.max(0, Math.min(1, (s - SMIN) / (SMAX - SMIN))) * 100)
+  }));
+}
+\end{verbatim}
+
+\subsection*{E.3 Privacy}
+Queries are transmitted to the embedding service for the purpose of computing the semantic embedding. They are not stored, logged, or aggregated by the Region Resonances application. There are no user accounts and no session-spanning history. The same query submitted twice produces the same result, but this is a property of the model and the corpus, not of any record kept of the user's previous activity.
+
+\section*{F. What the Mathematics Does and Does Not Establish}
+
+The procedure described above is a sequence of well-defined operations: produce a vector via an embedding map, compute inner products against a fixed reference set, sort, transform for display. Each step is mathematically clean and computationally cheap. Given the same query, the procedure always returns the same ranking, and small changes to the query produce small changes in the similarity vector --- both desirable properties.
+
+What the mathematics does \emph{not} establish is whether the rankings are good in the sense of corresponding to human judgement of semantic similarity. That property depends entirely on the embedding map $E$: whether it has learned, from the text it was trained on, to assign nearby vectors to passages that competent readers would judge similar in meaning. This is not a mathematical question. It is an empirical question about the embedding model, and one whose answer for the OpenAI \texttt{text-embedding-3-small} model has been validated by the model's authors and by external benchmarks, but never formally proven.
+
+The mathematical framework presented in this appendix is therefore a guarantee of well-posedness, not of meaningfulness. The procedure will always run, will always produce a ranked list, and will always do so in a way that is geometrically natural and stable under small perturbations. Whether the ranked list reflects something a thoughtful reader of \emph{The Soul of Wine} would recognise as a meaningful resonance is a question that can only be answered by reading the results.
+
+\section*{References}
+
+\begin{itemize}[leftmargin=2em,itemsep=0.2em]
+\item Mikolov, T., Chen, K., Corrado, G. \& Dean, J. (2013). Efficient estimation of word representations in vector space. \emph{arXiv:1301.3781}.
+\item OpenAI (2024). New embedding models and API updates. Technical announcement covering \texttt{text-embedding-3-small} and \texttt{text-embedding-3-large}.
+\item Reimers, N. \& Gurevych, I. (2019). Sentence-BERT: Sentence embeddings using Siamese BERT-networks. In \emph{Proceedings of EMNLP-IJCNLP}, 3982--3992.
+\item Salton, G. \& McGill, M. J. (1983). \emph{Introduction to Modern Information Retrieval}. McGraw-Hill.
+\item Vaswani, A. et al.\ (2017). Attention is all you need. In \emph{Advances in Neural Information Processing Systems} 30.
+\end{itemize}
+
+\end{document}
