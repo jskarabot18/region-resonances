@@ -5,7 +5,7 @@ import { useState, useRef, useEffect } from 'react';
 //
 // Matches region-affinities Header.jsx structure:
 //   - TopStrip with wordmark, Vinotheca link, Documentation dropdown
-//   - Title block: eyebrow ("A Tool of Vinotheca"), mixed-italic
+//   - Title block: eyebrow ("A Correspondence of Vinotheca"), mixed-italic
 //     title ("Region Resonances"), subtitle with structural prose
 //
 // Region Resonances has no tab navigation (single view), so the tab nav
@@ -52,7 +52,7 @@ export default function Header() {
       <div className="bg-parchment-warm border-b border-parchment-edge">
         <div className="max-w-6xl mx-auto px-6 pt-8 pb-8">
           <div className="flex items-baseline gap-4 mb-1">
-            <p className="small-caps text-wine">A Tool of Vinotheca</p>
+            <p className="small-caps text-wine">A Correspondence of Vinotheca</p>
           </div>
           <h1 className="text-4xl md:text-5xl font-serif italic mb-2">
             Region <span className="not-italic font-semibold">Resonances</span>
