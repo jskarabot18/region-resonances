@@ -12,11 +12,13 @@ import { useState, useRef, useEffect } from 'react';
 // from region-affinities is omitted — title block sits directly above the
 // main content area.
 //
-// Documentation menu: three documents.
-//   1. Methodology and Interpretation — companion document for general
+// Documentation menu: five documents.
+//   1. Summary — high-level overview of the project and its findings.
+//   2. Methodology and Interpretation — companion document for general
 //      readers, explaining the matching procedure conceptually.
-//   2. Technical Appendix — mathematical concepts behind the procedure.
-//   3. Region Profiles — Identity (Layer 1) — the source text the matcher
+//   3. Technical Appendix — mathematical concepts behind the procedure.
+//   4. Data Appendix — supporting data tables and reference material.
+//   5. Region Profiles — Identity (Layer 1) — the source text the matcher
 //      operates on. Other Soul of Wine PDFs (terroir, technical, narrative,
 //      methods) are out of scope for this tool's purpose, so we don't
 //      expose them here.
@@ -31,12 +33,14 @@ import { useState, useRef, useEffect } from 'react';
 const SOUL_OF_WINE_BASE = 'https://jskarabot18.github.io/soul-of-wine';
 const BASE = import.meta.env.BASE_URL;
 
-// Region Resonances ships its own methodology and technical primer, plus
-// the Layer 1 Identity narratives from the parent project (the source text
-// for the semantic matcher).
+// Region Resonances ships its own four-document set, plus the Layer 1
+// Identity narratives from the parent project (the source text for the
+// semantic matcher).
 const DOCS = [
-  { label: 'Methodology and Interpretation', href: `${BASE}docs/region_resonances_methodology.pdf#page=1` },
-  { label: 'Technical Appendix',             href: `${BASE}docs/region_resonances_technical.pdf#page=1` },
+  { label: 'Summary',                        href: `${BASE}docs/RegionResonances_Summary.pdf#page=1` },
+  { label: 'Methodology and Interpretation', href: `${BASE}docs/RegionResonances_Methods_Primer.pdf#page=1` },
+  { label: 'Technical Appendix',             href: `${BASE}docs/RegionResonances_Technical_Appendix.pdf#page=1` },
+  { label: 'Data Appendix',                  href: `${BASE}docs/RegionResonances_Data_Appendix.pdf#page=1` },
   { label: 'Region Profiles — Identity',     href: `${SOUL_OF_WINE_BASE}/docs/layer1-descriptions.pdf#page=1` },
 ];
 
