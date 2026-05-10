@@ -16,9 +16,9 @@ const EXAMPLE_QUERIES = [
   'careful joy',
   'stubborn quiet',
   'the feeling of late summer',
-  'rebellion',
-  'opulence',
-  'resilience',
+  'quiet defiance',
+  'earned ease',
+  'second chances',
 ];
 
 export default function InputPanel({
