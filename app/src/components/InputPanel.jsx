@@ -15,10 +15,9 @@ const EXAMPLE_QUERIES = [
   'old soul',
   'careful joy',
   'stubborn quiet',
-  'the feeling of late summer',
-  'quiet defiance',
-  'earned ease',
-  'second chances',
+  'borrowed time',
+  'bright sorrow',
+  'gentle ruin',
 ];
 
 export default function InputPanel({
