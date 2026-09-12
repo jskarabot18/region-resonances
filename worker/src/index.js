@@ -30,6 +30,9 @@ const MAX_QUERY_LENGTH = 500;
 // Localhost is included so `npm run dev` works during development.
 const ALLOWED_ORIGINS = new Set([
   "https://jskarabot18.github.io",        // GitHub Pages (Soul of Wine / Vinotheca)
+  "https://thevinotheca.com",             // thevinotheca.com (consolidated site)
+  "https://www.thevinotheca.com",
+  "http://localhost:8000",                 // local preview of the consolidated site
   "http://localhost:5173",                 // Vite default dev port
   "http://localhost:3000",                 // Common alternate dev port
   "http://127.0.0.1:5173",
