@@ -29,7 +29,6 @@ const MAX_QUERY_LENGTH = 500;
 // CORS allowlist. Add domains here as the tool gets deployed elsewhere.
 // Localhost is included so `npm run dev` works during development.
 const ALLOWED_ORIGINS = new Set([
-  "https://jskarabot18.github.io",        // GitHub Pages (Soul of Wine / Vinotheca)
   "https://thevinotheca.com",             // thevinotheca.com (consolidated site)
   "https://www.thevinotheca.com",
   "http://localhost:8000",                 // local preview of the consolidated site
