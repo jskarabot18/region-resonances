@@ -18,9 +18,9 @@ export default function Footer() {
           </p>
         </div>
         <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 text-xs font-sans text-ink-muted">
-          <a href="https://github.com/jskarabot18/region-resonances" className="hover:text-wine transition-colors" target="_blank" rel="noreferrer">GitHub</a>
+          <a href="https://github.com/thevinotheca/thevinotheca.com" className="hover:text-wine transition-colors" target="_blank" rel="noreferrer">GitHub</a>
           <span className="text-ink-subtle">·</span>
-          <a href="https://github.com/jskarabot18/region-resonances/blob/main/LICENSE" className="hover:text-wine transition-colors" target="_blank" rel="noreferrer">License · CC BY-NC 4.0</a>
+          <a href="/LICENSE" className="hover:text-wine transition-colors">License · CC BY-NC 4.0</a>
           <span className="text-ink-subtle">·</span>
           <a href="/" className="hover:text-wine transition-colors">Vinotheca</a>
           <span className="text-ink-subtle">·</span>
