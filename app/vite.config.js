@@ -8,7 +8,7 @@ export default defineConfig({
   // Base path for GitHub Pages deployment.
   // Repo will live at github.com/jskarabot18/region-resonances
   // → site at jskarabot18.github.io/region-resonances/
-  base: '/region-resonances/',
+  base: '/library/correspondence/region-resonances/',
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
