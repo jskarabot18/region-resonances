@@ -32,6 +32,7 @@ const ALLOWED_ORIGINS = new Set([
   "https://thevinotheca.com",             // thevinotheca.com (consolidated site)
   "https://www.thevinotheca.com",
   "http://localhost:8000",                 // local preview of the consolidated site
+  "http://192.168.1.168:5173",           // phone on the LAN, narrow-screen walks
   "http://localhost:5173",                 // Vite default dev port
   "http://localhost:3000",                 // Common alternate dev port
   "http://127.0.0.1:5173",
