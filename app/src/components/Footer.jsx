@@ -22,7 +22,7 @@ export default function Footer() {
           <span className="text-ink-subtle">·</span>
           <a href="https://github.com/jskarabot18/region-resonances/blob/main/LICENSE" className="hover:text-wine transition-colors" target="_blank" rel="noreferrer">License · CC BY-NC 4.0</a>
           <span className="text-ink-subtle">·</span>
-          <a href="https://jskarabot18.github.io/vinotheca/" className="hover:text-wine transition-colors">Vinotheca</a>
+          <a href="/" className="hover:text-wine transition-colors">Vinotheca</a>
           <span className="text-ink-subtle">·</span>
           <a href="mailto:hello@codexvini.com" className="hover:text-wine transition-colors">Correspondence</a>
         </div>

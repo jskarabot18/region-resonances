@@ -12,7 +12,7 @@
  * If the actual scheme differs, only this file needs updating.
  */
 
-const REGION_AFFINITIES_BASE = 'https://jskarabot18.github.io/region-affinities/';
+const REGION_AFFINITIES_BASE = '/library/inquiries/region-affinities/';
 
 /**
  * Build the deep-link URL into Region Affinities Region Atlas for

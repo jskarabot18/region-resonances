@@ -30,7 +30,7 @@ import { useState, useRef, useEffect } from 'react';
 // local dev (BASE_URL = '/') and on GitHub Pages (BASE_URL = '/region-resonances/').
 // ---------------------------------------------------------------------------
 
-const SOUL_OF_WINE_BASE = 'https://jskarabot18.github.io/soul-of-wine';
+const SOUL_OF_WINE_BASE = '/library/inquiries/soul-of-wine';
 const BASE = import.meta.env.BASE_URL;
 
 // Region Resonances ships its own four-document set, plus the Layer 1
@@ -84,7 +84,7 @@ function TopStrip() {
         <div className="flex items-center gap-1 text-xs font-sans">
           {/* Vinotheca is parent navigation — use same tab, not a new one */}
           <a
-            href="https://jskarabot18.github.io/vinotheca/"
+            href="/"
             className="px-3 py-2 uppercase tracking-widest text-ink-muted hover:text-wine transition-colors"
           >
             Vinotheca
